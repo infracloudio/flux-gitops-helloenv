@@ -26,11 +26,11 @@ Ensure you have following things setup:
 
 Let's take a look at two Git repositories we will be using.
 
-1. **Application repository** - [https://github.com/shashankpai/helloenv-app](https://github.com/shashankpai/helloenv-app)  - code and Kustomization.
+1. **Application repository** - [https://github.com/infracloudio/flux-helloenv-app](https://github.com/infracloudio/flux-helloenv-app)  - code and Kustomization.
    1. **Kustomization for environment separation**: Utilizing Kustomize to segregate staging and production environments. 
    2. **Structured repository**: The repository combines source code and Kubernetes manifests for a unified demo setup. There are many possible ways to [structure your git repositories.](https://fluxcd.io/flux/guides/repository-structure/)
    3. **CI and automation**: Leveraging GitHub Actions for [continuous integration](/ci-cd-consulting/) and automation.
-2. **Management Repository**-  [https://github.com/shashankpai/gitops-helloenv](https://github.com/shashankpai/gitops-helloenv) - GitOps manifests.
+2. **Management Repository**-  [https://github.com/infracloudio/flux-gitops-helloenv](https://github.com/infracloudio/flux-gitops-helloenv) - GitOps manifests.
 
 ### Flux bootstrap configuration
 
@@ -59,7 +59,7 @@ This instructs Flux on how to interact with the Git repository where your applic
     branch: main
   secretRef:
     name: ssh-credentials
-  url: ssh://git@github.com/shashankpai/helloenv-app
+  url: ssh://git@github.com/infracloudio/flux-helloenv-app
 ```
 
 `ref:` Specifies the Git branch to watch for changes, in this case, main.  
@@ -311,9 +311,9 @@ The result of these `curl` commands will show the current default image versions
 
 ### Releasing to stage 
 
-Now, let's make some changes to the app and release it to the stage. We can make a minor change to the [app.py](https://github.com/shashankpai/helloenv-app/blob/main/app/app.py) file in the application code repository `helloenv-app`, by changing the message and pushing it to the main branch, of course, in real case it will be pushed to main through a PR.  
+Now, let's make some changes to the app and release it to the stage. We can make a minor change to the [app.py](https://github.com/infracloudio/flux-helloenv-app/blob/main/app/app.py) file in the application code repository `helloenv-app`, by changing the message and pushing it to the main branch, of course, in real case it will be pushed to main through a PR.  
 
-This change triggers the [CI](https://github.com/shashankpai/helloenv-app/blob/main/.github/workflows/ci.yaml) job configured on the application code repository. This job contains the logic to check the tag and then create the image tag based on it.
+This change triggers the [CI](https://github.com/infracloudio/flux-helloenv-app/blob/main/.github/workflows/ci.yaml) job configured on the application code repository. This job contains the logic to check the tag and then create the image tag based on it.
 
 ```yaml
 run: |
@@ -379,7 +379,7 @@ git push --tags
 This will, in turn, trigger the CI and create an image tag with that Git tag that we pushed.
 Once this is triggered and pushed, the image automation in Flux will commit and push the changes to the flux-image-update branch.   
 
-This will then create a PR using workflow in [helloenv-app repo](https://github.com/shashankpai/helloenv-app/blob/main/.github/workflows/auto-pr.yaml). This PR needs a manual review and approval since it is a prod environment. Once this gets approved, it changes the tag with the latest tag in [prod kustomization](https://github.com/shashankpai/helloenv-app/blob/main/demo/kustomize/prod/kustomization.yaml).
+This will then create a PR using workflow in [helloenv-app repo](https://github.com/infracloudio/flux-helloenv-app/blob/main/.github/workflows/auto-pr.yaml). This PR needs a manual review and approval since it is a prod environment. Once this gets approved, it changes the tag with the latest tag in [prod kustomization](https://github.com/infracloudio/flux-helloenv-app/blob/main/demo/kustomize/prod/kustomization.yaml).
 
 ![PR created using workflow in helloenv-app repo](/assets/img/Blog/automatic-image-update-to-git-using-flux-github-actions/pr-created-using-helloenv-app-repo.png)
 
