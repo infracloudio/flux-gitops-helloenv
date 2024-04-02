@@ -3,8 +3,8 @@
 This is a documentation, designed to guide you through the practical implementation of a GitOps workflow using FluxCD. In this documentation, we'll explore how to leverage the power of image automation and the image reflector controller to streamline your development and deployment processes.
 
 We will showcase this through a deployment pipeline in 2 env (staging and production) wherein using githubactions we will do the CI process of building and pushing the containers to registry , once pushed to registry, the image automation and image reflector controllers will identify the change and make an automatic update to kubernetes manifests and flux will automatically reconcile the changes in stage env. For Prod, to ensure control, changes are promoted to production through a Pull Request (PR) with manual approval.
-![image](https://github.com/shashankpai/gitops-helloenv/assets/24639491/bbe898c1-ecc2-461e-ad53-bfdd8f80a10b)
-![image](https://github.com/shashankpai/gitops-helloenv/assets/24639491/da68a611-aa6d-46b0-a2d8-5939808cd27a)
+![auto-release-in-stagging](https://github.com/infracloudio/flux-gitops-helloenv/assets/44128982/22ef3408-cedd-4e81-873d-f0a8ef53a81b)
+![manual-release-in-prod](https://github.com/infracloudio/flux-gitops-helloenv/assets/44128982/fe55719d-e439-4826-a6ed-96689363f446)
 
 ### Prerequisites
 
@@ -66,7 +66,7 @@ This instructs Flux on how to interact with the Git repository where your applic
 `secretRef:` Refers to a Kubernetes Secret named ssh-credentials, which likely contains SSH keys for secure Git access.  
 The `ssh-credentials` is a secret that needs to be created.  
 
-`url:` Indicates the URL of the Git repository, Change this to `url: ssh://git@github.com/<your_github_username>/helloenv-app` once you fork it.  
+`url:` Indicates the URL of the Git repository, Change this to `url: ssh://git@github.com/<your_github_username>/flux-helloenv-app` once you fork it.  
 
 #### image-repo.yaml
 
@@ -124,7 +124,7 @@ Now, let's go through the **ImageUpdateAutomation** files.
 
 #### helloenv-staging.yaml
 
-This YAML file configures an ImageUpdateAutomation object to update the image tags in the `./demo/kustomize/staging` directory of the helloenv-app Git repository. It will scan the repo every 1 minute (specified by the interval field).   
+This YAML file configures an ImageUpdateAutomation object to update the image tags in the `./demo/kustomize/staging` directory of the flux-helloenv-app Git repository. It will scan the repo every 1 minute (specified by the interval field).   
 
 The `git` section specifies the branch to checkout and the commit message template. The sourceRef section specifies the Git repository containing the Kubernetes manifests to update.  
 
@@ -147,7 +147,7 @@ spec:
   interval: 1m0s
   sourceRef:
     kind: GitRepository
-    name: helloenv-app
+    name: flux-helloenv-app
   update:
     path: ./demo/kustomize/staging
     strategy: Setters
@@ -182,7 +182,7 @@ spec:
   interval: 1m0s
   sourceRef:
     kind: GitRepository
-    name: helloenv-app
+    name: flux-helloenv-app
   update:
     path: ./demo/kustomize/prod
     strategy: Setters
@@ -218,7 +218,7 @@ To enable the Flux image automation feature, the extra components can be specifi
 
 - `infrastructure.yaml` defines a Kustomization resource called ingress-nginx. This Kustomization lives in the flux-system namespace, doesn't depend on anything, and has kustomize files at infrastructure/ingress-nginx.
 
-- `apps.yaml`, which defines the `helloenv-app` application itself. Within this file, you'll find references to the apps directory. This directory is a central location containing Kustomizations and configuration settings for setting up the `helloenv-app` application in both the prod and staging environments. Additionally, it includes configurations for image automation for `helloenv` app in staging and prod env.
+- `apps.yaml`, which defines the `flux-helloenv-app` application itself. Within this file, you'll find references to the apps directory. This directory is a central location containing Kustomizations and configuration settings for setting up the `flux-helloenv-app` application in both the prod and staging environments. Additionally, it includes configurations for image automation for `helloenv` app in staging and prod env.
 
 The process of bootstrapping everything may take some time. To monitor the progress and ensure everything is proceeding as expected, we can utilize the `--watch` switch.
 
@@ -237,7 +237,7 @@ kustomize-controller-424f5ab2a2-u2hwb          1/1     Running   0          29s
 source-controller-2wc41z892-axkr1              1/1     Running   0          29s
 ```
 
-Since our helloenv-app repository is public, application will get deployed as part of the bootstrap step. You can check both staging and prod environments with following commands.
+Since our flux-helloenv-app repository is public, application will get deployed as part of the bootstrap step. You can check both staging and prod environments with following commands.
 ```sh
 kubectl rollout status -n helloenv-staging deployments
 watch kubectl get pods -n helloenv-staging
@@ -256,7 +256,7 @@ The [`flux create secret git`](https://fluxcd.io/flux/cmd/flux_create_secret_git
 ```sh
 GITHUB_USER=<your_github_username>
 flux create secret git ssh-credentials \
-  --url=ssh://git@github.com/${GITHUB_USER}/helloenv-app
+  --url=ssh://git@github.com/${GITHUB_USER}/flux-helloenv-app
 ```
 
 If you need to retrieve the public key later, you can extract it from the secret as follows:
@@ -266,7 +266,7 @@ kubectl get secret ssh-credentials -n flux-system -ojson \
   | jq -r '.data."identity.pub"' | base64 -d
 ```
 
-Use the public key as a Deploy key in your fork of the helloenv-app repo. Browse to the following URL, replacing `<your_github_username>` with your GitHub username: `https://github.com/<your_github_username>/helloenv-app/settings/keys`.   
+Use the public key as a Deploy key in your fork of the flux-helloenv-app repo. Browse to the following URL, replacing `<your_github_username>` with your GitHub username: `https://github.com/<your_github_username>/flux-helloenv-app/settings/keys`.   
 The page will appear as follows.     
 
 ![Deploy keys page](/assets/img/Blog/automatic-image-update-to-git-using-flux-github-actions/deploy-keys-page.png)
@@ -311,7 +311,7 @@ The result of these `curl` commands will show the current default image versions
 
 ### Releasing to stage 
 
-Now, let's make some changes to the app and release it to the stage. We can make a minor change to the [app.py](https://github.com/infracloudio/flux-helloenv-app/blob/main/app/app.py) file in the application code repository `helloenv-app`, by changing the message and pushing it to the main branch, of course, in real case it will be pushed to main through a PR.  
+Now, let's make some changes to the app and release it to the stage. We can make a minor change to the [app.py](https://github.com/infracloudio/flux-helloenv-app/blob/main/app/app.py) file in the application code repository `flux-helloenv-app`, by changing the message and pushing it to the main branch, of course, in real case it will be pushed to main through a PR.  
 
 This change triggers the [CI](https://github.com/infracloudio/flux-helloenv-app/blob/main/.github/workflows/ci.yaml) job configured on the application code repository. This job contains the logic to check the tag and then create the image tag based on it.
 
@@ -379,9 +379,9 @@ git push --tags
 This will, in turn, trigger the CI and create an image tag with that Git tag that we pushed.
 Once this is triggered and pushed, the image automation in Flux will commit and push the changes to the flux-image-update branch.   
 
-This will then create a PR using workflow in [helloenv-app repo](https://github.com/infracloudio/flux-helloenv-app/blob/main/.github/workflows/auto-pr.yaml). This PR needs a manual review and approval since it is a prod environment. Once this gets approved, it changes the tag with the latest tag in [prod kustomization](https://github.com/infracloudio/flux-helloenv-app/blob/main/demo/kustomize/prod/kustomization.yaml).
+This will then create a PR using workflow in [flux-helloenv-app repo](https://github.com/infracloudio/flux-helloenv-app/blob/main/.github/workflows/auto-pr.yaml). This PR needs a manual review and approval since it is a prod environment. Once this gets approved, it changes the tag with the latest tag in [prod kustomization](https://github.com/infracloudio/flux-helloenv-app/blob/main/demo/kustomize/prod/kustomization.yaml).
 
-![PR created using workflow in helloenv-app repo](/assets/img/Blog/automatic-image-update-to-git-using-flux-github-actions/pr-created-using-helloenv-app-repo.png)
+![PR created using workflow in helloenv-app repo](/assets/img/Blog/automatic-image-update-to-git-using-flux-github-actions/pr-created-using-flux-helloenv-app-repo.png)
 
 curl to the prod DNS should give you the latest tag as the version. 
 
