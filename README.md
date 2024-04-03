@@ -150,9 +150,6 @@ kubectl get secret ssh-credentials -n flux-system -ojson \
 ```
 
 Use the public key as a Deploy key in your fork of the flux-helloenv-app repo. Browse to the following URL, replacing `<your_github_username>` with your GitHub username: `https://github.com/<your_github_username>/flux-helloenv-app/settings/keys`.   
-The page will appear as follows.     
-
-![Deploy keys page](/assets/img/Blog/automatic-image-update-to-git-using-flux-github-actions/deploy-keys-page.png)
 
 Click "Add deploy key" and paste the key data (starts with `ssh-<alg>...` ) into the contents. The name is arbitrary, we use helloenv-app-secret here.
 
