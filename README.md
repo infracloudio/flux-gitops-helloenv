@@ -1,6 +1,6 @@
 # FluxCD Gitops using image automation and image reflector controller
 
-This is a README.md is design to guide you through the setup and things you need look out for after you fork it.
+[Automatic Image Update to Git using Flux and GitHub Actions Blog](https://infracloud.io/blogs/automatic-image-update-to-git-using-flux-github-actions/) has a detailed walkthrough with explanation and this README.md is design to guide you through the setup and things you need look out for after you fork it.
 
 ### Prerequisites
 1. **Flux CLI** - which can be downloaded from the [official docs](https://fluxcd.io/docs/cmd/)
@@ -188,7 +188,3 @@ curl helloenv.stage.com
 ```
 
 The result of these `curl` commands will show the current default image versions that the deployment is using.
-
-## What's next?
-
-Refer to the [Automatic Image Update to Git using Flux and GitHub Actions Blog](https://infracloud.io/blogs/automatic-image-update-to-git-using-flux-github-actions/) for next steps, detailed explanations and incident management.
